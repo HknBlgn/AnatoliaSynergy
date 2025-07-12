@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anadolu Sinerji HUB - Partner Portalı</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .kpi-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s, color 0.2s;
+            color: #d1d5db; /* gray-300 */
+        }
+        .sidebar-link:hover {
+            background-color: #1e40af; /* darker blue */
+            color: white;
+        }
+        .sidebar-link.active {
+            background-color: #2563eb; /* blue-600 */
+            color: white;
+            font-weight: 600;
+        }
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-yeni, .status-acik { background-color: #e0f2fe; color: #0c4a6e; }
+        .status-onaylandi { background-color: #dcfce7; color: #166534; }
+        .status-reddedildi { background-color: #fee2e2; color: #991b1b; }
+        .status-gozden-geciriliyor, .status-islemde { background-color: #fefce8; color: #854d0e; }
+        .status-aktif { background-color: #dcfce7; color: #166534; }
+        .status-potansiyel { background-color: #e0f2fe; color: #0c4a6e; }
+        .status-pasif, .status-kapali { background-color: #fee2e2; color: #991b1b; }
+        .status-lisans-aktif { background-color: #dcfce7; color: #166534; }
+        .status-lisans-suresi-dolacak { background-color: #fefce8; color: #854d0e; }
+        .status-lisans-suresi-doldu { background-color: #fee2e2; color: #991b1b; }
+        
+        .content-section {
+            padding-top: 1rem;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: transform 0.3s;
+        }
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+        .gemini-output {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: #e2e8f0;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .copy-button:hover {
+            background-color: #cbd5e1;
+        }
+        .ai-button {
+            background-image: linear-gradient(to right, #8b5cf6, #6366f1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .ai-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+        .ai-card {
+            background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+            border: 1px solid #ddd6fe;
+        }
+
+        /* Chatbot Stilleri */
+        #chatbot-toggle {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            height: 60px;
+            border-radius: 30px;
+            background-image: linear-gradient(to right, #8b5cf6, #6366f1);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1.5rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            z-index: 100;
+        }
+        #chatbot-toggle:hover {
+            transform: scale(1.1);
+        }
+        #chatbot-window {
+            position: fixed;
+            bottom: 7rem;
+            right: 2rem;
+            width: 350px;
+            height: 500px;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: scale(0.95);
+            opacity: 0;
+            visibility: hidden;
+            transition: transform 0.3s, opacity 0.3s;
+            transform-origin: bottom right;
+            z-index: 99;
+        }
+        #chatbot-window.visible {
+            transform: scale(1);
+            opacity: 1;
+            visibility: visible;
+        }
+        .chatbot-header {
+            background-image: linear-gradient(to right, #8b5cf6, #6366f1);
+            color: white;
+            padding: 1rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chatbot-body {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background-color: #f9fafb;
+        }
+        .chatbot-footer {
+            padding: 1rem;
+            border-top: 1px solid #e5e7eb;
+            background-color: white;
+        }
+        .chatbot-input {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+        }
+        .filter-button {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            transition: background-color 0.2s, color 0.2s;
+            border: 1px solid #d1d5db;
+            color: #4b5563;
+        }
+        .filter-button.active {
+            background-color: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+        .progress-bar {
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            height: 0.5rem;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            background-color: #22c55e;
+            height: 100%;
+            transition: width 0.5s ease-in-out;
+        }
+        .docs-menu-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 0.375rem;
+        }
+        .docs-menu-item:hover {
+            background-color: #374151;
+        }
+        .docs-menu-item.active {
+            background-color: #4338ca;
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Ana Konteyner -->
+    <div id="app-container" class="flex h-screen bg-gray-100">
+        
+        <!-- Kenar Çubuğu (Sidebar) -->
+        <aside id="sidebar" class="w-64 bg-gray-800 text-white p-4 space-y-4 flex-shrink-0 flex flex-col">
+            <div class="text-2xl font-bold text-center py-4 border-b border-gray-700">
+                Anadolu Sinerji HUB
+            </div>
+            <!-- Yönetici Navigasyonu -->
+            <nav id="admin-nav" class="space-y-2 hidden">
+                <a href="#admin-dashboard" class="sidebar-link active"><i class="fas fa-chart-line w-6 mr-3"></i>Genel Bakış</a>
+                <a href="#admin-partner-management" class="sidebar-link"><i class="fas fa-users-cog w-6 mr-3"></i>Partner Yönetimi</a>
+                <a href="#admin-training-management" class="sidebar-link"><i class="fas fa-chalkboard-teacher w-6 mr-3"></i>Eğitim Yönetimi</a>
+                <a href="#partner-products-docs" class="sidebar-link"><i class="fas fa-book w-6 mr-3"></i>Ürün Dokümantasyonu</a>
+            </nav>
+            <!-- Partner Navigasyonu -->
+            <nav id="partner-nav" class="space-y-2">
+                <a href="#partner-dashboard" class="sidebar-link"><i class="fas fa-tachometer-alt w-6 mr-3"></i>Partner Paneli</a>
+                <a href="#partner-customers" class="sidebar-link"><i class="fas fa-users w-6 mr-3"></i>Müşterilerim</a>
+                <a href="#partner-referral" class="sidebar-link"><i class="fas fa-random w-6 mr-3"></i>Müşteri Yönlendirme</a>
+                <a href="#partner-training" class="sidebar-link"><i class="fas fa-graduation-cap w-6 mr-3"></i>Eğitimler</a>
+                <a href="#partner-my-products" class="sidebar-link"><i class="fas fa-box w-6 mr-3"></i>Ürünlerim</a>
+                <a href="#partner-products-docs" class="sidebar-link"><i class="fas fa-book w-6 mr-3"></i>Ürün Dokümantasyonu</a>
+                <a href="#partner-sales-marketing" class="sidebar-link"><i class="fas fa-bullhorn w-6 mr-3"></i>Pazarlama Desteği</a>
+                <a href="#partner-tickets" class="sidebar-link"><i class="fas fa-life-ring w-6 mr-3"></i>Destek Talepleri</a>
+                <a href="#partner-knowledge-base" class="sidebar-link"><i class="fas fa-lightbulb w-6 mr-3"></i>Çözüm Bankası</a>
+            </nav>
+        </aside>
+
+        <!-- Ana İçerik Alanı -->
+        <div class="flex-1 flex flex-col">
+            <header class="bg-white shadow-sm p-4 flex justify-end items-center sticky top-0 z-10">
+                 <div>
+                    <span class="text-sm mr-2 text-gray-600">Görünümü Değiştir:</span>
+                    <button id="view-switcher" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-300 transition-colors flex items-center text-sm">
+                        <i id="view-switcher-icon" class="fas fa-user-shield mr-2"></i>
+                        <span id="view-switcher-text">Yönetici Görünümü</span>
+                    </button>
+                </div>
+            </header>
+            <main id="main-content-area" class="flex-1 overflow-y-auto p-8">
+                
+                <!-- Yönetici Paneli (Dashboard) -->
+                <section id="admin-dashboard" class="content-section admin-section">
+                     <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h2 class="text-3xl font-bold mb-2">Yönetici Paneli - Genel Bakış</h2>
+                        <p class="text-gray-600 mb-6">Tüm partner ağınızın performansını tek bir ekrandan izleyin, stratejik kararlar alın ve ekosistemin genel sağlığını kontrol edin.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            <!-- AI Asistan Kartı -->
+                            <div class="kpi-card ai-card md:col-span-2 lg:col-span-1 flex flex-col justify-center">
+                                <h3 class="text-lg font-bold text-purple-800 mb-2">✨ AI Asistan</h3>
+                                <p class="text-sm text-purple-700 mb-4">Yapay zeka destekli araçlarla verimliliğinizi artırın.</p>
+                                <button onclick="handleNavClick(event, 'admin-training-management')" class="w-full text-sm ai-button font-bold py-2 px-4 rounded-lg">Eğitim İçeriği Oluştur</button>
+                            </div>
+                            <div class="kpi-card"><h3 class="text-gray-500 font-semibold">Toplam Partner Sayısı</h3><p class="text-3xl font-bold mt-2">152</p></div>
+                            <div class="kpi-card"><h3 class="text-gray-500 font-semibold">Yeni Başvuru Sayısı</h3><p class="text-3xl font-bold mt-2">12</p></div>
+                            <div class="kpi-card"><h3 class="text-gray-500 font-semibold">Genel Ciro</h3><p class="text-3xl font-bold mt-2">₺18,7M</p></div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-gray-50 p-6 rounded-xl"><h3 class="font-bold text-lg mb-4">Partner Seviye Dağılımı</h3><canvas id="partnerTierChart"></canvas></div>
+                            <div class="bg-gray-50 p-6 rounded-xl"><h3 class="font-bold text-lg mb-4">En İyi Performans Gösteren Partnerler</h3><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2">Partner</th><th>Seviye</th><th>Ciro</th></tr></thead><tbody><tr class="border-b hover:bg-gray-100"><td class="py-3">Örnek Teknoloji A.Ş.</td><td>Altın</td><td>₺1,250,000</td></tr><tr class="border-b hover:bg-gray-100"><td class="py-3">Çözüm Odak Bilişim</td><td>Altın</td><td>₺980,000</td></tr><tr class="hover:bg-gray-100"><td class="py-3">Veri Analitik Ltd.</td><td>Gümüş</td><td>₺750,000</td></tr></tbody></table></div>
+                        </div>
+                     </div>
+                </section>
+
+                <!-- Partner Paneli (Dashboard) -->
+                <section id="partner-dashboard" class="content-section partner-section">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <div class="flex justify-between items-center mb-2"><div><h2 class="text-3xl font-bold">Partner Paneli</h2><p class="text-gray-600">Hoş geldiniz, Örnek Teknoloji A.Ş. (Altın Partner)</p></div></div>
+                        <p class="text-gray-600 mb-6">Bu ekrandan satış performansınızı anlık olarak takip edebilir, size özel duyuruları görebilir ve AI Asistan ile işlerinizi kolaylaştıracak stratejilere anında ulaşabilirsiniz.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            <div class="kpi-card ai-card">
+                                <h3 class="text-lg font-bold text-purple-800 mb-2">✨ AI Asistan</h3>
+                                <p class="text-sm text-purple-700 mb-4">Müşterileriniz için stratejiler veya teknik sorunlarınız için hızlı çözümler üretin.</p>
+                                <button onclick="handleNavClick(event, 'partner-knowledge-base')" class="w-full text-sm ai-button font-bold py-2 px-4 rounded-lg">Akıllı Bilgi Bankası</button>
+                            </div>
+                            <div class="kpi-card"><h3 class="text-gray-500 font-semibold">Toplam Satış Cirosu</h3><p class="text-3xl font-bold mt-2">₺1,25M</p><p class="text-green-500 flex items-center mt-1"><i class="fas fa-arrow-up mr-1"></i> %15</p></div>
+                            <div class="kpi-card"><h3 class="text-gray-500 font-semibold">Kazanılan Lead Sayısı</h3><p class="text-3xl font-bold mt-2">42</p><p class="text-green-500 flex items-center mt-1"><i class="fas fa-arrow-up mr-1"></i> 5 yeni</p></div>
+                            <div class="kpi-card"><h3 class="text-gray-500 font-semibold">Eğitim Tamamlama</h3><p class="text-3xl font-bold mt-2">85%</p><p class="text-gray-500 mt-1">3/5 Sertifika</p></div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2 bg-gray-50 p-6 rounded-xl"><h3 class="font-bold text-lg mb-4">Aylık Satış Trendi</h3><canvas id="salesTrendChart"></canvas></div>
+                            <div class="bg-gray-50 p-6 rounded-xl"><h3 class="font-bold text-lg mb-4">Lead Durum Dağılımı</h3><canvas id="leadStatusChart"></canvas></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Partner Müşteri Yönetimi -->
+                <section id="partner-customers" class="content-section partner-section">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-3xl font-bold">Müşterilerim</h2>
+                            <button onclick="showAddCustomerModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 transition-colors flex items-center"><i class="fas fa-plus mr-2"></i> Yeni Müşteri Ekle</button>
+                        </div>
+                        <p class="text-gray-600 mb-6">Mevcut müşterilerinizi yönetin, potansiyel müşterilerinizi takip edin ve her bir müşteri için özel stratejiler oluşturmak üzere AI Asistan'dan destek alın.</p>
+                        <div class="overflow-x-auto"><table class="w-full text-left" id="customer-management-table"><thead><tr class="border-b-2"><th class="p-3">Müşteri Adı</th><th class="p-3">Şirket</th><th class="p-3">Durum</th><th class="p-3">Eylemler</th></tr></thead><tbody></tbody></table></div>
+                    </div>
+                </section>
+
+                <!-- Partner Müşteri Yönlendirme -->
+                <section id="partner-referral" class="content-section partner-section">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-3xl font-bold">Müşteri Yönlendirme ve İşbirliği</h2>
+                            <button onclick="showNewReferralModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors flex items-center"><i class="fas fa-random mr-2"></i> Yeni Yönlendirme Talebi</button>
+                        </div>
+                        <p class="text-gray-600 mb-6">Uzmanlık alanınız dışındaki veya farklı coğrafi bölgelerdeki müşteri taleplerini diğer partnerlere yönlendirerek işbirliği yapın ve müşteri memnuniyetini artırın.</p>
+                        <div class="overflow-x-auto"><table class="w-full text-left" id="referral-table"><thead><tr class="border-b-2"><th class="p-3">Müşteri</th><th class="p-3">Talep Konusu</th><th class="p-3">Yönlendirilen Partner</th><th class="p-3">Durum</th></tr></thead><tbody></tbody></table></div>
+                    </div>
+                </section>
+
+                <!-- Partner Eğitim Kütüphanesi -->
+                <section id="partner-training" class="content-section partner-section">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h2 class="text-3xl font-bold mb-2">Eğitim Kütüphanesi</h2>
+                        <p class="text-gray-600 mb-6">Ürün bilgilerinizi ve satış yeteneklerinizi geliştirmek için tasarlanmış eğitimlere katılın. Kategorilere göre filtreleyerek aradığınız eğitime kolayca ulaşın.</p>
+                        <div class="flex items-center space-x-2 mb-6" id="training-filter">
+                            <!-- Eğitim Filtre butonları JS ile eklenecek -->
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="training-list"></div>
+                    </div>
+                </section>
+
+                <!-- Partner Ürünlerim -->
+                <section id="partner-my-products" class="content-section partner-section">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h2 class="text-3xl font-bold mb-2">Ürünlerim ve Lisanslarım</h2>
+                        <p class="text-gray-600 mb-6">Satın aldığınız ürünlerin lisans durumlarını, kullanıcı sayılarını ve geçerlilik tarihlerini buradan takip edebilir, lisanslarınızı kolayca yönetebilirsiniz.</p>
+                        <div class="overflow-x-auto">
+                            <h3 class="text-xl font-semibold mb-4 text-gray-700">Ana Ürünler</h3>
+                            <table class="w-full text-left mb-8" id="my-main-products-table">
+                                <thead><tr class="border-b-2"><th class="p-3">Ürün Adı</th><th class="p-3">Kullanıcı Sayısı</th><th class="p-3">Geçerlilik Tarihi</th><th class="p-3">Durum</th><th class="p-3">Eylemler</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                            <h3 class="text-xl font-semibold mb-4 text-gray-700">Eklentiler (Add-ons)</h3>
+                            <table class="w-full text-left" id="my-addons-table">
+                                 <thead><tr class="border-b-2"><th class="p-3">Eklenti Adı</th><th class="p-3">Ana Ürün</th><th class="p-3">Durum</th><th class="p-3">Eylemler</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Partner Ürün Kataloğu ve Dokümantasyon -->
+                <section id="partner-products-docs" class="content-section admin-section partner-section">
+                     <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h2 class="text-3xl font-bold mb-2">Ürün Kataloğu ve Dokümantasyon</h2>
+                        <p class="text-gray-600 mb-6">Ürünlerimiz hakkında detaylı teknik bilgilere, kullanım kılavuzlarına ve API dokümantasyonlarına bu bölümden ulaşabilirsiniz.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                            <div class="md:col-span-1">
+                                <h3 class="font-semibold mb-3 text-gray-700">Ürünler</h3>
+                                <div id="docs-menu" class="space-y-1"></div>
+                            </div>
+                            <div class="md:col-span-3" id="docs-content">
+                                <!-- Doküman içeriği JS ile buraya eklenecek -->
+                            </div>
+                        </div>
+                     </div>
+                </section>
+
+                <!-- Partner Satış ve Pazarlama Desteği -->
+                <section id="partner-sales-marketing" class="content-section partner-section">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                         <h2 class="text-3xl font-bold mb-2">Satış ve Pazarlama Desteği</h2>
+                         <p class="text-gray-600 mb-6">Satış ve pazarlama faaliyetlerinizde kullanabileceğiniz güncel broşürlere, sunumlara, rakip analizlerine ve satış rehberlerine buradan ulaşabilirsiniz.</p>
+                         <div class="flex items-center space-x-2 mb-6" id="sales-marketing-filter">
+                            <!-- Filtre butonları JS ile eklenecek -->
+                         </div>
+                         <!-- Pazarlama Kütüphanesi -->
+                         <div class="mb-12">
+                             <h3 class="text-xl font-semibold mb-4 text-gray-700">Pazarlama Kütüphanesi</h3>
+                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="marketing-assets-list">
+                                 <!-- Pazarlama materyalleri JS ile buraya eklenecek -->
+                             </div>
+                         </div>
+                         <!-- Satış Yardımcıları -->
+                         <div>
+                             <h3 class="text-xl font-semibold mb-4 text-gray-700">Satış Yardımcıları</h3>
+                             <div class="overflow-x-auto">
+                                 <table class="w-full text-left" id="sales-aids-table">
+                                    <thead><tr class="border-b-2"><th class="p-3">Materyal Adı</th><th class="p-3">Türü</th><th class="p-3">Eylemler</th></tr></thead>
+                                    <tbody></tbody>
+                                 </table>
+                             </div>
+                         </div>
+                    </div>
+                </section>
+
+                <!-- Partner Destek Talepleri (Ticket) -->
+                <section id="partner-tickets" class="content-section partner-section">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-3xl font-bold">Destek Talepleri (Ticket)</h2>
+                            <button onclick="showNewTicketModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 transition-colors flex items-center"><i class="fas fa-plus mr-2"></i> Yeni Destek Talebi Oluştur</button>
+                        </div>
+                        <p class="text-gray-600 mb-6">Teknik destek ekibimize ulaşmak için yeni bir talep oluşturun veya mevcut taleplerinizin durumunu buradan takip edin.</p>
+                        <div class="overflow-x-auto"><table class="w-full text-left" id="support-tickets-table"><thead><tr class="border-b-2"><th class="p-3">Konu</th><th class="p-3">Durum</th><th class="p-3">Son Güncelleme</th><th class="p-3">Eylemler</th></tr></thead><tbody></tbody></table></div>
+                    </div>
+                </section>
+
+                <!-- Partner Çözüm ve Bilgi Bankası -->
+                <section id="partner-knowledge-base" class="content-section partner-section">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <h2 class="text-3xl font-bold mb-2">Çözüm ve Bilgi Bankası</h2>
+                        <p class="text-gray-600 mb-6">Karşılaştığınız sorunlar için çözüm arayın. AI Asistan, aradığınız bilgiye en hızlı şekilde ulaşmanız için makaleleri sizin için özetler.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                            <div class="md:col-span-1">
+                                <h3 class="font-semibold mb-3 text-gray-700">Kategoriler</h3>
+                                <ul class="space-y-2" id="kb-category-tree">
+                                   <!-- Kategori ağacı JS ile eklenecek -->
+                                </ul>
+                            </div>
+                            <div class="md:col-span-3">
+                                <div class="relative mb-4">
+                                    <input type="text" id="kb-search-input" placeholder="Sorununuzu buraya yazın..." class="w-full p-3 pl-10 border border-gray-300 rounded-lg">
+                                    <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+                                </div>
+                                <button onclick="searchKnowledgeBase()" class="w-full ai-button font-bold py-2 px-4 rounded-lg flex items-center justify-center mb-6">
+                                    ✨ AI ile Hızlı Yanıt Al
+                                </button>
+                                <div id="gemini-kb-loader" class="hidden mt-2 text-sm text-gray-500 text-center">AI sizin için en iyi yanıtı arıyor...</div>
+                                <div id="gemini-kb-output" class="hidden relative"></div>
+                                <div id="kb-results">
+                                     <h3 class="text-lg font-semibold mt-6 mb-2">Son Eklenen Çözümler</h3>
+                                     <!-- Son çözümler JS ile eklenecek -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Yönetici - Partner Yönetimi -->
+                <section id="admin-partner-management" class="content-section admin-section">
+                    <div id="admin-partner-list-view">
+                        <div class="bg-white p-8 rounded-xl shadow-lg">
+                            <h2 class="text-3xl font-bold mb-2">Partner Yönetimi</h2>
+                            <p class="text-gray-600 mb-6">Mevcut partnerleri ve yeni başvuruları yönetin. Partnerlerinizin müşteri ve lisans bilgilerini görüntülemek için "Yönet" butonunu kullanın.</p>
+                            <div class="overflow-x-auto"><table class="w-full text-left" id="partner-management-table"><thead><tr class="border-b-2"><th class="p-3">Şirket Adı</th><th class="p-3">İletişim Kişisi</th><th class="p-3">Durum</th><th class="p-3">Partner Tipi</th><th class="p-3">Eylemler</th></tr></thead><tbody></tbody></table></div>
+                        </div>
+                    </div>
+                    <div id="admin-partner-detail-view" class="hidden">
+                         <div class="bg-white p-8 rounded-xl shadow-lg">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-3xl font-bold" id="detail-partner-name"></h2>
+                                <button onclick="hideAdminPartnerDetails()" class="bg-gray-600 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-700 transition-colors flex items-center"><i class="fas fa-arrow-left mr-2"></i> Tüm Partnerlere Geri Dön</button>
+                            </div>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <div>
+                                    <h3 class="text-xl font-semibold mb-4 text-gray-700">Partner Müşterileri</h3>
+                                    <div class="overflow-x-auto max-h-96"><table class="w-full text-left" id="admin-partner-customer-table"><thead><tr class="border-b-2"><th class="p-3">Müşteri</th><th class="p-3">Durum</th></tr></thead><tbody></tbody></table></div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold mb-4 text-gray-700">Atanan Ürün ve Lisanslar</h3>
+                                    <div class="overflow-x-auto max-h-96"><table class="w-full text-left" id="admin-partner-license-table"><thead><tr class="border-b-2"><th class="p-3">Ürün</th><th class="p-3">Kullanıcılar</th><th class="p-3">Bitiş Tarihi</th></tr></thead><tbody></tbody></table></div>
+                                </div>
+                            </div>
+                         </div>
+                    </div>
+                </section>
+                
+                <!-- Yönetici - Eğitim Yönetimi -->
+                <section id="admin-training-management" class="content-section admin-section">
+                    <div class="bg-white p-8 rounded-xl shadow-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-3xl font-bold">Eğitim Yönetimi</h2>
+                            <button onclick="showAddTrainingModal()" class="ai-button px-4 py-2 rounded-lg shadow flex items-center"><i class="fas fa-plus mr-2"></i> Yeni Eğitim Ekle</button>
+                        </div>
+                        <p class="text-gray-600 mb-6">Partnerlerinizin yetkinliklerini artırmak için yeni eğitimler oluşturun, mevcut eğitimlerin katılım oranlarını takip edin ve AI ile saniyeler içinde eğitim açıklamaları hazırlayın.</p>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                            <div class="kpi-card lg:col-span-2">
+                                <h3 class="font-bold text-lg mb-4">Eğitim Tamamlama Oranları</h3>
+                                <canvas id="trainingCompletionChart"></canvas>
+                            </div>
+                            <div class="kpi-card">
+                                 <h3 class="text-gray-500 font-semibold mb-2">Genel İstatistikler</h3>
+                                 <div class="space-y-4">
+                                     <div>
+                                         <p class="text-sm text-gray-600">Toplam Eğitim</p>
+                                         <p class="text-2xl font-bold">4</p>
+                                     </div>
+                                      <div>
+                                         <p class="text-sm text-gray-600">Genel Tamamlama Oranı</p>
+                                         <p class="text-2xl font-bold">67%</p>
+                                     </div>
+                                      <div>
+                                         <p class="text-sm text-gray-600">En Popüler Eğitim</p>
+                                         <p class="text-lg font-bold">Etkili Satış Teknikleri</p>
+                                     </div>
+                                 </div>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto"><table class="w-full text-left" id="admin-training-table"><thead><tr class="border-b-2"><th class="p-3">Eğitim Adı</th><th class="p-3">Kategori</th><th class="p-3">Tamamlayan Sayısı</th><th class="p-3">Eylemler</th></tr></thead><tbody></tbody></table></div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Chatbot -->
+    <div id="chatbot-toggle">
+        <i class="fas fa-robot"></i>
+        <span class="ml-2 text-base font-semibold hidden sm:inline">AI'a Sor</span>
+    </div>
+    <div id="chatbot-window" class="">
+        <div class="chatbot-header">
+            <span>AI Asistan</span>
+            <button id="close-chatbot" class="text-xl">&times;</button>
+        </div>
+        <div class="chatbot-body">
+            <p class="bg-gray-200 p-3 rounded-lg text-sm self-start w-fit max-w-xs">Merhaba! Size nasıl yardımcı olabilirim?</p>
+        </div>
+        <div class="chatbot-footer">
+            <input type="text" placeholder="Mesajınızı yazın..." class="chatbot-input">
+        </div>
+    </div>
+
+
+    <!-- Modal Konteyneri -->
+    <div id="modal" class="modal-overlay">
+        <div id="modal-content" class="modal-content"></div>
+    </div>
+
+    <script>
+        // --- ÖRNEK VERİLER ---
+        const products = [
+            { id: 1, name: 'AS-CRM', category: 'CRM', image: 'https://placehold.co/600x400/10b981/ffffff?text=AS-CRM', short_desc: 'Müşteri ilişkilerinizi güçlendirin ve satışlarınızı artırın.', long_desc: 'ConnectCRM, satış, pazarlama ve müşteri hizmetleri ekiplerinizin 360 derece müşteri görünümü elde etmesini sağlar.', features: ['Satış Otomasyonu', 'Pazarlama Kampanyaları', 'Destek Masası', 'Raporlama'], price: 'Kullanıcı Başı Aylık ₺250' },
+            { id: 2, name: 'AS-Finans', category: 'Finans', image: 'https://placehold.co/600x400/3b82f6/ffffff?text=AS-Finans', short_desc: 'Finansal operasyonlarınızı tek bir merkezden yönetin.', long_desc: 'AS-Finans, genel muhasebe, maliyet muhasebesi, duran varlıklar ve bütçeleme gibi tüm finansal süreçlerinizi entegre bir şekilde yönetir.', features: ['Genel Muhasebe', 'Maliyet Analizi', 'Duran Varlık Yönetimi', 'Bütçeleme'], price: 'Teklif Alınız' },
+            { id: 3, name: 'AS-e-Dönüşüm', category: 'e-Dönüşüm', image: 'https://placehold.co/600x400/f97316/ffffff?text=e-Dönüşüm', short_desc: 'e-Fatura, e-Arşiv, e-İrsaliye gibi süreçlerinizi dijitalleştirin.', long_desc: 'AS-e-Dönüşüm çözümleri ile yasal zorunlulukları kolayca yerine getirin ve operasyonel verimlilik kazanın.', features: ['e-Fatura', 'e-Arşiv Fatura', 'e-İrsaliye', 'e-Defter'], price: 'Pakete Göre Değişir' },
+            { id: 4, name: 'AS-Mobil', category: 'Mobil', image: 'https://placehold.co/600x400/6366f1/ffffff?text=AS-Mobil', short_desc: 'Saha operasyonlarınızı mobil cihazlar üzerinden yönetin.', long_desc: 'AS-Mobil, saha satış, teknik servis ve lojistik ekiplerinizin anlık veri girişi yapmasını ve merkezle senkronize çalışmasını sağlar.', features: ['Saha Satış Otomasyonu', 'Mobil Servis Yönetimi', 'Stok Takibi', 'Raporlama'], price: 'Teklif Alınız' },
+        ];
+        const partners = [
+            { id: 1, company: 'Örnek Teknoloji A.Ş.', contact: 'Ahmet Yılmaz', email: 'ahmet.yilmaz@orneka.com', phone: '0555 123 4567', address: 'Teknoloji Plaza, Kat: 5, İstanbul', status: 'Onaylandı', type: 'Altın', date: '15.02.2023' },
+            { id: 2, company: 'Çözüm Odak Bilişim', contact: 'Ayşe Kaya', email: 'ayse.kaya@cozumodak.com', phone: '0555 234 5678', address: 'Bilişim Vadisi, Gebze/Kocaeli', status: 'Onaylandı', type: 'Altın', date: '10.01.2023' },
+             { id: 3, company: 'Veri Analitik Ltd.', contact: 'Mehmet Can', email: 'm.can@verianalitik.net', phone: '0555 345 6789', address: 'ODTÜ Teknokent, Ankara', status: 'Gözden Geçiriliyor', type: 'Gümüş', date: '22.05.2025' },
+        ];
+        const customers = [
+            { id: 1, partnerId: 1, name: 'Deniz Gıda San. A.Ş.', contactPerson: 'Elif Deniz', email: 'elif@denizgida.com', phone: '0212 555 1020', status: 'Aktif', notes: 'AS-Finans kullanıyorlar. Yıllık bakım anlaşması yenilenecek.'},
+            { id: 2, partnerId: 1, name: 'Marmara Lojistik', contactPerson: 'Can Tekin', email: 'can.tekin@marmaraloj.com', phone: '0216 444 3040', status: 'Aktif', notes: 'AS-CRM lisanslarını artırmak istiyorlar.'},
+            { id: 3, partnerId: 2, name: 'Global Ticaret', contactPerson: 'Zeynep Global', email: 'zeynep@globaltic.com', phone: '0212 333 4455', status: 'Potansiyel', notes: 'Yeni CRM arayışındalar.'},
+        ];
+        const trainings = [
+            { id: 1, title: 'AS-Finans Temel Kullanım', category: 'Finans', image: 'https://placehold.co/400x300/3b82f6/ffffff?text=Finans', duration: 45, description: 'AS-Finans platformunun temel modüllerini ve günlük kullanım senaryolarını öğrenin.', video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', materials: [{name: 'Kullanım Kılavuzu.pdf', url:'#'}]},
+            { id: 2, title: 'Etkili Satış Teknikleri', category: 'Satış', image: 'https://placehold.co/400x300/10b981/ffffff?text=Satış', duration: 60, description: 'Müşteri itirazlarını karşılama ve başarılı bir satış süreci yönetme üzerine odaklanın.', video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', materials: [{name: 'Satış Sunumu.pptx', url:'#'}]},
+            { id: 3, title: 'AS-CRM ile Müşteri Yönetimi', category: 'CRM', image: 'https://placehold.co/400x300/ef4444/ffffff?text=CRM', duration: 75, description: 'AS-CRM kullanarak müşteri verilerini nasıl yöneteceğinizi ve raporlayacağınızı öğrenin.', video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', materials: []},
+            { id: 4, title: 'e-Dönüşüm Süreçleri', category: 'e-Dönüşüm', image: 'https://placehold.co/400x300/f97316/ffffff?text=e-Dönüşüm', duration: 50, description: 'e-Fatura ve e-Arşiv gibi yasal süreçlerin yönetimi hakkında bilgi edinin.', video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', materials: [{name: 'Mevzuat Rehberi.pdf', url:'#'}]}
+        ];
+        const trainingCompletions = [
+            { partnerId: 1, trainingId: 1, status: 'Tamamlandı' },
+            { partnerId: 2, trainingId: 1, status: 'Tamamlandı' },
+            { partnerId: 3, trainingId: 1, status: 'Devam Ediyor' },
+            { partnerId: 1, trainingId: 2, status: 'Devam Ediyor' },
+            { partnerId: 2, trainingId: 2, status: 'Tamamlandı' },
+            { partnerId: 3, trainingId: 2, status: 'Tamamlandı' },
+        ];
+        const myProducts = [
+            { id: 1, partnerId: 1, name: 'AS-Finans', licenseType: 'Yıllık', users: 50, expiry: '31.12.2025', status: 'lisans-aktif' },
+            { id: 2, partnerId: 1, name: 'AS-CRM', licenseType: 'Aylık', users: 15, expiry: '31.07.2025', status: 'lisans-suresi-dolacak' },
+            { id: 3, partnerId: 2, name: 'AS-CRM', licenseType: 'Yıllık', users: 100, expiry: '01.03.2026', status: 'lisans-aktif' }
+        ];
+        const myAddons = [
+            { id: 1, partnerId: 1, name: 'Gelişmiş Raporlama Modülü', mainProduct: 'AS-Finans', status: 'lisans-aktif' },
+            { id: 2, partnerId: 1, name: 'e-Fatura Entegrasyonu', mainProduct: 'AS-Finans', status: 'lisans-suresi-doldu' }
+        ];
+        const marketingAssets = [
+            { id: 1, name: 'AS-Finans Broşürü', type: 'Broşür', category: 'Finans', thumbnail: 'https://placehold.co/400x300/3b82f6/ffffff?text=Broşür' },
+            { id: 2, name: 'AS-CRM Sunumu', type: 'Sunum', category: 'CRM', thumbnail: 'https://placehold.co/400x300/10b981/ffffff?text=Sunum' },
+            { id: 3, name: 'Anadolu Sinerji HUB Logo Kiti', type: 'Logo', category: 'Genel', thumbnail: 'https://placehold.co/400x300/6366f1/ffffff?text=Logo' },
+            { id: 4, name: 'e-Dönüşüm Kampanyası', type: 'Sosyal Medya', category: 'e-Dönüşüm', thumbnail: 'https://placehold.co/400x300/f97316/ffffff?text=Kampanya' },
+        ];
+        const salesAids = [
+            { id: 1, name: 'Rakip Analizi: Finans Yazılımları', type: 'Analiz', category: 'Finans' },
+            { id: 2, name: 'AS-CRM Satış Konuşması', type: 'Rehber', category: 'CRM' },
+            { id: 3, name: 'Fiyatlandırma İtirazları', type: 'İtiraz Karşılama', category: 'Genel' },
+        ];
+        const knowledgeBaseArticles = [
+            { id: 1, title: 'Yeni Kullanıcı Nasıl Eklenir?', category: 'Kullanıcı Yönetimi', content: 'Yeni kullanıcı eklemek için Yönetici Panelinden Kullanıcılar sekmesine gidin ve "Yeni Ekle" butonuna tıklayın. Gerekli bilgileri doldurduktan sonra kaydedin.' },
+            { id: 2, title: 'e-Fatura Şablonu Özelleştirme', category: 'e-Dönüşüm', content: 'e-Fatura şablonunu özelleştirmek için Ayarlar > e-Dönüşüm Ayarları > Şablonlar bölümüne gidin. Buradan mevcut şablonu düzenleyebilir veya yeni bir tane oluşturabilirsiniz.' },
+            { id: 3, title: 'AS-Finans API Entegrasyonu Nasıl Yapılır?', category: 'API', content: 'API entegrasyonu için öncelikle Ayarlar > Geliştirici bölümünden bir API anahtarı oluşturmanız gerekmektedir. Dokümantasyonumuzu inceleyerek adımları takip edebilirsiniz.' }
+        ];
+        const supportTickets = [
+            { id: 1, subject: 'Raporlama modülü yavaş çalışıyor', status: 'islemde', lastUpdate: '11.07.2025' },
+            { id: 2, subject: 'Yeni kullanıcı ekleyemiyorum', status: 'kapali', lastUpdate: '10.07.2025' },
+            { id: 3, subject: 'e-Fatura şablonu hakkında soru', status: 'acik', lastUpdate: '12.07.2025' },
+        ];
+        const referrals = [
+            { id: 1, customer: 'Marmara Lojistik', subject: 'Mobil Saha Satış App', referredTo: 'Çözüm Odak Bilişim', status: 'islemde' },
+            { id: 2, customer: 'Anadolu Metal', subject: 'e-İrsaliye Geçişi', referredTo: 'Veri Analitik Ltd.', status: 'onaylandi' }
+        ];
+
+        // --- GLOBAL DEĞİŞKENLER ---
+        let currentView = 'partner';
+        const partnerNav = document.getElementById('partner-nav');
+        const adminNav = document.getElementById('admin-nav');
+        const viewSwitcher = document.getElementById('view-switcher');
+        const viewSwitcherText = document.getElementById('view-switcher-text');
+        const viewSwitcherIcon = document.getElementById('view-switcher-icon');
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modal-content');
+        const adminSections = document.querySelectorAll('.admin-section');
+        const partnerSections = document.querySelectorAll('.partner-section');
+        const adminPartnerListView = document.getElementById('admin-partner-list-view');
+        const adminPartnerDetailView = document.getElementById('admin-partner-detail-view');
+        const chatbotToggle = document.getElementById('chatbot-toggle');
+        const chatbotWindow = document.getElementById('chatbot-window');
+        const closeChatbot = document.getElementById('close-chatbot');
+
+        // --- CHATBOT ---
+        chatbotToggle.addEventListener('click', () => chatbotWindow.classList.toggle('visible'));
+        closeChatbot.addEventListener('click', () => chatbotWindow.classList.remove('visible'));
+
+        // --- NAVİGASYON ---
+        function handleNavClick(event, sectionId) {
+            event.preventDefault();
+            if (sectionId === 'admin-partner-management') {
+                hideAdminPartnerDetails();
+            }
+            const targetElement = document.getElementById(sectionId);
+            if(targetElement) {
+                const mainContentArea = document.getElementById('main-content-area');
+                const offsetPosition = targetElement.offsetTop - 20; // 20px buffer
+                mainContentArea.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
+        function updateActiveLinkOnScroll() {
+            const mainContentArea = document.getElementById('main-content-area');
+            let fromTop = mainContentArea.scrollTop + 120; // Buffer
+            let currentSectionId = null;
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => {
+                if (section.style.display !== 'none' && section.offsetTop <= fromTop && section.offsetTop + section.offsetHeight > fromTop) {
+                    currentSectionId = section.id;
+                }
+            });
+
+            const navLinks = document.querySelectorAll('.sidebar-link');
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${currentSectionId}`) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        
+        // --- ROL YÖNETİMİ ---
+        function switchView() {
+            if (currentView === 'admin') {
+                currentView = 'partner';
+                adminNav.classList.add('hidden');
+                partnerNav.classList.remove('hidden');
+                viewSwitcherText.textContent = 'Yönetici Görünümü';
+                viewSwitcherIcon.className = 'fas fa-user-shield mr-2';
+                adminSections.forEach(s => s.style.display = 'none');
+                partnerSections.forEach(s => s.style.display = 'block');
+                document.getElementById('partner-dashboard').scrollIntoView();
+                updateActiveLinkOnScroll();
+                renderPartnerCharts();
+            } else {
+                currentView = 'admin';
+                partnerNav.classList.add('hidden');
+                adminNav.classList.remove('hidden');
+                viewSwitcherText.textContent = 'Partner Görünümü';
+                viewSwitcherIcon.className = 'fas fa-user-tie mr-2';
+                partnerSections.forEach(s => s.style.display = 'none');
+                adminSections.forEach(s => s.style.display = 'block');
+                hideAdminPartnerDetails(); // Detay görünümünü gizle
+                document.getElementById('admin-dashboard').scrollIntoView();
+                updateActiveLinkOnScroll();
+                renderAdminCharts();
+            }
+        }
+        viewSwitcher.addEventListener('click', switchView);
+
+        // --- MODAL İŞLEMLERİ ---
+        function showModal(content) { modalContent.innerHTML = content; modal.classList.add('visible'); }
+        function hideModal() { modal.classList.remove('visible'); }
+        modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
+
+        // --- YÖNETİCİ GÖRÜNÜMÜ İŞLEVLERİ ---
+        function showAdminPartnerDetails(partnerId) { const partner = partners.find(p => p.id === partnerId); if (!partner) return; adminPartnerListView.classList.add('hidden'); adminPartnerDetailView.classList.remove('hidden'); document.getElementById('detail-partner-name').textContent = `${partner.company} Detayları`; const partnerCustomers = customers.filter(c => c.partnerId === partnerId); const customerTableBody = document.querySelector('#admin-partner-customer-table tbody'); customerTableBody.innerHTML = ''; if (partnerCustomers.length > 0) { partnerCustomers.forEach(c => { customerTableBody.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="p-3 font-semibold">${c.name}</td><td class="p-3"><span class="status-badge status-${c.status.toLowerCase()}">${c.status}</span></td></tr>`; }); } else { customerTableBody.innerHTML = `<tr><td colspan="2" class="p-3 text-center text-gray-500">Bu partnere ait müşteri bulunmuyor.</td></tr>`; } const partnerLicenses = myProducts.filter(p => p.partnerId === partnerId); const licenseTableBody = document.querySelector('#admin-partner-license-table tbody'); licenseTableBody.innerHTML = ''; if (partnerLicenses.length > 0) { partnerLicenses.forEach(l => { licenseTableBody.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="p-3 font-semibold">${l.name}</td><td class="p-3">${l.users}</td><td class="p-3">${l.expiry}</td></tr>`; }); } else { licenseTableBody.innerHTML = `<tr><td colspan="3" class="p-3 text-center text-gray-500">Bu partnere ait lisans bulunmuyor.</td></tr>`; } }
+        function hideAdminPartnerDetails() { adminPartnerListView.classList.remove('hidden'); adminPartnerDetailView.classList.add('hidden'); }
+        function showAdminTrainingDetailsModal(trainingId) {
+            const training = trainings.find(t => t.id === trainingId);
+            if (!training) return;
+
+            const completed = trainingCompletions.filter(c => c.trainingId === trainingId && c.status === 'Tamamlandı').map(c => partners.find(p => p.id === c.partnerId).company);
+            const notStarted = partners.filter(p => !trainingCompletions.some(c => c.partnerId === p.id && c.trainingId === trainingId));
+
+            const completedHtml = completed.length > 0 ? completed.map(name => `<li class="p-2 bg-green-50 rounded-md">${name}</li>`).join('') : '<li>Eğitimi tamamlayan partner yok.</li>';
+            const notStartedHtml = notStarted.length > 0 ? notStarted.map(p => `<li class="p-2 bg-red-50 rounded-md">${p.company}</li>`).join('') : '<li>Tüm partnerler bu eğitime başlamış.</li>';
+
+            const content = `
+                <div class="flex justify-between items-start"><h2 class="text-2xl font-bold">${training.title} Katılımcıları</h2><button onclick="hideModal()" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button></div>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><h3 class="font-semibold mb-2">Tamamlayanlar (${completed.length})</h3><ul class="space-y-2">${completedHtml}</ul></div>
+                    <div><h3 class="font-semibold mb-2">Başlamayanlar (${notStarted.length})</h3><ul class="space-y-2">${notStartedHtml}</ul></div>
+                </div>
+            `;
+            showModal(content);
+        }
+        function showAddTrainingModal() {
+            const content = `
+                <h2 class="text-2xl font-bold mb-4">Yeni Eğitim Ekle</h2>
+                <form id="add-training-form" class="space-y-4">
+                    <div>
+                        <label for="training-title" class="block text-sm font-medium text-gray-700">Eğitim Başlığı</label>
+                        <input type="text" id="training-title" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm">
+                    </div>
+                    <div>
+                        <label for="training-desc" class="block text-sm font-medium text-gray-700">Açıklama</label>
+                        <div class="relative">
+                            <textarea id="training-desc" rows="4" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm"></textarea>
+                            <button type="button" onclick="generateTrainingDescription()" title="AI ile Açıklama Oluştur" class="ai-button absolute top-2 right-2 rounded-full p-2 h-8 w-8 flex items-center justify-center">✨</button>
+                        </div>
+                         <div id="gemini-training-loader" class="hidden mt-2 text-sm text-gray-500">Oluşturuluyor...</div>
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-4">
+                        <button type="button" onclick="hideModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">İptal</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Kaydet</button>
+                    </div>
+                </form>
+            `;
+            showModal(content);
+        }
+
+        // --- DİĞER FONKSİYONLAR ---
+        function showLicenseDetailsModal(productId) { const product = myProducts.find(p => p.id === productId); if (!product) return; const content = `<div class="flex justify-between items-start"><h2 class="text-2xl font-bold">Lisans Düzenle: ${product.name}</h2><button onclick="hideModal()" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button></div><form class="mt-6 border-t pt-4 space-y-4"><div><label class="block text-sm font-medium text-gray-700">Mevcut Kullanıcı Sayısı</label><p class="text-lg font-semibold">${product.users}</p></div><div><label for="add-users" class="block text-sm font-medium text-gray-700">Eklenecek Kullanıcı Sayısı</label><input type="number" id="add-users" value="5" min="1" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm"></div><div><label class="block text-sm font-medium text-gray-700">Lisans Bitiş Tarihi</label><p class="text-lg font-semibold">${product.expiry}</p></div><div class="flex justify-end space-x-2 pt-4"><button type="button" onclick="hideModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">İptal</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Güncelle</button></div></form>`; showModal(content); }
+        function showTrainingDetails(trainingId) { const training = trainings.find(t => t.id === trainingId); if (!training) return; const materialsHtml = training.materials.length > 0 ? training.materials.map(m => `<a href="${m.url}" class="flex items-center p-2 bg-gray-100 rounded-md hover:bg-gray-200"><i class="fas fa-file-alt mr-2 text-gray-500"></i><span>${m.name}</span></a>`).join('') : '<p class="text-gray-500">Bu eğitim için ek materyal bulunmamaktadır.</p>'; const content = `<div class="flex justify-between items-start"><h2 class="text-2xl font-bold">${training.title}</h2><button onclick="hideModal()" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button></div><div class="mt-4"><div class="aspect-w-16 aspect-h-9 mb-4"><iframe src="${training.video_url}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full rounded-lg"></iframe></div><p class="text-gray-700 mb-4">${training.description}</p><h3 class="font-bold text-lg mb-2">Materyaller</h3><div class="space-y-2">${materialsHtml}</div></div>`; showModal(content); }
+        function showCustomerDetails(customerId) {
+            const customer = customers.find(c => c.id === customerId);
+            if (!customer) return;
+            const content = `
+                <div class="flex justify-between items-start">
+                    <h2 class="text-2xl font-bold">${customer.name}</h2>
+                    <button onclick="hideModal()" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+                </div>
+                <div class="mt-6 border-t pt-4 space-y-2">
+                    <p><strong>Yetkili Kişi:</strong> ${customer.contactPerson}</p>
+                    <p><strong>Durum:</strong> <span class="status-badge status-${customer.status.toLowerCase()}">${customer.status}</span></p>
+                    <div class="bg-gray-50 p-3 rounded-md mt-4">
+                        <p class="font-semibold">Notlar:</p>
+                        <p class="text-gray-600">${customer.notes}</p>
+                    </div>
+                </div>`;
+            showModal(content);
+        }
+        function showCustomerActionPlanModal(customerId) {
+            const customer = customers.find(c => c.id === customerId);
+            if (!customer) return;
+            const content = `
+                <div class="flex justify-between items-start">
+                    <h2 class="text-2xl font-bold">${customer.name} için AI Aksiyon Planı</h2>
+                    <button onclick="hideModal()" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+                </div>
+                <div class="mt-6 border-t pt-4">
+                    <p class="mb-4 text-gray-600">Aşağıdaki butona tıklayarak Gemini'nin bu müşteri için özel bir e-posta taslağı, takip adımları ve ürün önerileri oluşturmasını sağlayın.</p>
+                    <button onclick="generateCustomerActionPlan(${customerId})" class="w-full ai-button font-bold py-2 px-4 rounded-lg flex items-center justify-center">
+                        ✨ Planı Oluştur
+                    </button>
+                    <div id="gemini-customer-loader" class="hidden mt-2 text-sm text-gray-500">Oluşturuluyor...</div>
+                    <div id="gemini-customer-output" class="hidden relative"></div>
+                </div>`;
+            showModal(content);
+        }
+        function showAddCustomerModal() { const content = `<h2 class="text-2xl font-bold mb-4">Yeni Müşteri Ekle</h2><form id="add-customer-form" class="space-y-4"><div><label class="block text-sm font-medium text-gray-700">Şirket Adı</label><input type="text" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></div><div><label class="block text-sm font-medium text-gray-700">Yetkili Kişi</label><input type="text" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></div><div class="flex justify-end space-x-2 pt-4"><button type="button" onclick="hideModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">İptal</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Kaydet</button></div></form>`; showModal(content); document.getElementById('add-customer-form').addEventListener('submit', (e) => { e.preventDefault(); hideModal(); }); }
+        function showPartnerDetails(partnerId) { const partner = partners.find(p => p.id === partnerId); if (!partner) return; const content = `<div class="flex justify-between items-start"><h2 class="text-2xl font-bold">${partner.company}</h2><button onclick="hideModal()" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button></div><div class="mt-6 border-t pt-4 space-y-2"><p><strong>E-posta:</strong> <a href="mailto:${partner.email}" class="text-blue-600 hover:underline">${partner.email}</a></p><p><strong>Telefon:</strong> ${partner.phone}</p><p><strong>Adres:</strong> ${partner.address}</p></div>`; showModal(content); }
+        
+        // --- VERİ RENDER FONKSİYONLARI ---
+        function renderMarketingAssets(filter = 'Tümü') {
+            const container = document.getElementById('marketing-assets-list');
+            if(!container) return;
+            const filteredAssets = marketingAssets.filter(a => filter === 'Tümü' || a.category === filter || a.category === 'Genel');
+            container.innerHTML = '';
+            filteredAssets.forEach(asset => {
+                container.innerHTML += `<div class="bg-gray-50 rounded-lg shadow-sm overflow-hidden group"><div class="relative"><img src="${asset.thumbnail}" alt="${asset.name}" class="w-full h-32 object-cover"><div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><button class="text-white bg-blue-600 px-4 py-2 rounded-lg">İndir</button></div></div><div class="p-3"><p class="font-semibold text-sm">${asset.name}</p><p class="text-xs text-gray-500">${asset.type}</p></div></div>`;
+            });
+        }
+        function renderSalesAids(filter = 'Tümü') {
+            const tableBody = document.querySelector('#sales-aids-table tbody');
+            if(!tableBody) return;
+            const filteredAids = salesAids.filter(a => filter === 'Tümü' || a.category === filter || a.category === 'Genel');
+            tableBody.innerHTML = '';
+            filteredAids.forEach(aid => {
+                tableBody.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="p-3 font-semibold">${aid.name}</td><td class="p-3">${aid.type}</td><td class="p-3"><button class="text-blue-600 hover:underline text-sm">Görüntüle/İndir</button></td></tr>`;
+            });
+        }
+        function renderSalesMarketingFilters() {
+            const container = document.getElementById('sales-marketing-filter');
+            if (!container) return;
+            const categories = ['Tümü', ...new Set(products.map(p => p.category))];
+            container.innerHTML = categories.map(c => `<button onclick="filterSalesMarketing('${c}', this)" class="filter-button ${c === 'Tümü' ? 'active' : ''}">${c}</button>`).join('');
+        }
+        function filterSalesMarketing(category, btnElement) {
+            document.querySelectorAll('#sales-marketing-filter .filter-button').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+            renderMarketingAssets(category);
+            renderSalesAids(category);
+        }
+        function renderAdminTrainingManagement() {
+            const tableBody = document.querySelector('#admin-training-table tbody');
+            if(!tableBody) return;
+            tableBody.innerHTML = '';
+            trainings.forEach(t => {
+                const completerCount = trainingCompletions.filter(c => c.trainingId === t.id && c.status === 'Tamamlandı').length;
+                tableBody.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="p-3 font-semibold">${t.title}</td><td class="p-3">${t.category}</td><td class="p-3">${completerCount} / ${partners.length}</td><td class="p-3"><button onclick="showAdminTrainingDetailsModal(${t.id})" class="text-blue-600 hover:underline">Katılımcıları Görüntüle</button></td></tr>`;
+            });
+        }
+        function renderMyProductsTables() { const mainProductsTable = document.querySelector('#my-main-products-table tbody'); const addonsTable = document.querySelector('#my-addons-table tbody'); if(!mainProductsTable || !addonsTable) return; mainProductsTable.innerHTML = ''; myProducts.filter(p=>p.partnerId === 1).forEach(p => { const statusText = p.status.split('-').slice(1).join(' '); mainProductsTable.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="p-3 font-semibold">${p.name}</td><td class="p-3">${p.users}</td><td class="p-3">${p.expiry}</td><td class="p-3"><span class="status-badge ${p.status}">${statusText}</span></td><td class="p-3 space-x-2 text-gray-600"><button onclick="showLicenseDetailsModal(${p.id})" title="Lisans Düzenle" class="hover:text-blue-600"><i class="fas fa-edit"></i></button><button title="Kullanıcıları Yönet" class="hover:text-green-600"><i class="fas fa-users"></i></button></td></tr>`; }); addonsTable.innerHTML = ''; myAddons.filter(a=>a.partnerId === 1).forEach(a => { const statusText = a.status.split('-').slice(1).join(' '); addonsTable.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="p-3 font-semibold">${a.name}</td><td class="p-3">${a.mainProduct}</td><td class="p-3"><span class="status-badge ${a.status}">${statusText}</span></td><td class="p-3 space-x-2 text-gray-600"><button title="Eklentiyi Yönet" class="hover:text-blue-600"><i class="fas fa-cog"></i></button></td></tr>`; }); }
+        function renderTrainingList(filter = 'Tümü') { 
+            const container = document.getElementById('training-list'); 
+            if(!container) return;
+            const filteredTrainings = trainings.filter(t => filter === 'Tümü' || t.category === filter);
+            container.innerHTML = ''; 
+            filteredTrainings.forEach(training => { 
+                let partnerStatus = trainingCompletions.find(c => c.partnerId === 1 && c.trainingId === training.id)?.status || 'Başlatılmadı'; 
+                let progress = 0;
+                if (partnerStatus === 'Tamamlandı') { progress = 100; } 
+                else if (partnerStatus === 'Devam Ediyor') { progress = 50; } 
+                const card = `<div class="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col group transition-all duration-300 hover:shadow-xl">
+                    <img src="${training.image}" alt="${training.title}" class="w-full h-32 object-cover">
+                    <div class="p-4 flex flex-col flex-grow">
+                        <span class="text-xs font-semibold text-indigo-600 bg-indigo-100 py-1 px-2 rounded-full self-start">${training.category}</span>
+                        <h3 class="text-md font-bold mt-2 flex-grow">${training.title}</h3>
+                        <div class="mt-2">
+                            <div class="flex justify-between text-xs font-semibold text-gray-500 mb-1">
+                                <span>İlerleme</span>
+                                <span>${progress}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill" style="width: ${progress}%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="showTrainingDetails(${training.id})" class="w-full bg-gray-200 text-gray-800 font-semibold py-3 hover:bg-blue-600 hover:text-white transition-colors text-sm">Eğitime Git</button>
+                </div>`; 
+                container.innerHTML += card; 
+            }); 
+        }
+        function renderTrainingFilters() {
+            const container = document.getElementById('training-filter');
+            if (!container) return;
+            const categories = ['Tümü', ...new Set(trainings.map(t => t.category))];
+            container.innerHTML = categories.map(c => `<button onclick="filterTrainings('${c}', this)" class="filter-button ${c === 'Tümü' ? 'active' : ''}">${c}</button>`).join('');
+        }
+        function filterTrainings(category, btnElement) {
+            document.querySelectorAll('#training-filter .filter-button').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+            renderTrainingList(category);
+        }
+        function renderProductDocs() { const menuContainer = document.getElementById('docs-menu'); const contentContainer = document.getElementById('docs-content'); if (!menuContainer || !contentContainer) return; menuContainer.innerHTML = ''; products.forEach(p => { menuContainer.innerHTML += `<div class="docs-menu-item" onclick="showDocContent('${p.id}', this)">${p.name}</div>`; }); showDocContent(products[0].id, menuContainer.children[0]); }
+        function showDocContent(productId, element) { const product = products.find(p => p.id == productId); if (!product) return; document.querySelectorAll('.docs-menu-item').forEach(el => el.classList.remove('active')); if(element) element.classList.add('active'); let content = ` <h3 class="text-2xl font-bold mb-4">${product.name} - Genel Bakış</h3> <p>${product.long_desc}</p> <h4 class="text-xl font-semibold mt-4 mb-2">Temel Özellikler</h4> <ul class="list-disc list-inside space-y-1"> ${product.features.map(f => `<li>${f}</li>`).join('')} </ul> <h4 class="text-xl font-semibold mt-4 mb-2">Dokümanlar</h4> <div class="space-y-2"><a href="#" class="flex items-center p-2 bg-gray-100 rounded-md hover:bg-gray-200"><i class="fas fa-file-pdf mr-2 text-red-500"></i>Kullanım Kılavuzu</a><a href="#" class="flex items-center p-2 bg-gray-100 rounded-md hover:bg-gray-200"><i class="fas fa-file-code mr-2 text-blue-500"></i>API Dokümantasyonu</a></div>`; document.getElementById('docs-content').innerHTML = content; }
+        function renderPartnerManagementTable() { const tableBody = document.querySelector('#partner-management-table tbody'); if(!tableBody) return; tableBody.innerHTML = ''; partners.forEach(p => { const statusClass = 'status-' + p.status.toLowerCase().replace(/ /g, '-').replace(/ö/g, 'o').replace(/ç/g, 'c').replace(/ı/g, 'i').replace(/ğ/g, 'g'); tableBody.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="p-3 font-semibold">${p.company}</td><td class="p-3">${p.contact}</td><td class="p-3"><span class="status-badge ${statusClass}">${p.status}</span></td><td class="p-3">${p.type}</td><td class="p-3 space-x-2 text-gray-600"><button onclick="showAdminPartnerDetails(${p.id})" title="Yönet" class="bg-blue-100 text-blue-700 px-3 py-1 rounded-md text-sm hover:bg-blue-200">Yönet</button></td></tr>`; }); }
+        function renderCustomerTable() { 
+            const tableBody = document.querySelector('#customer-management-table tbody'); 
+            if(!tableBody) return; 
+            tableBody.innerHTML = ''; 
+            customers.filter(c=>c.partnerId === 1).forEach(c => { 
+                const statusClass = 'status-' + c.status.toLowerCase(); 
+                tableBody.innerHTML += `<tr class="border-b hover:bg-gray-50">
+                    <td class="p-3 font-semibold">${c.contactPerson}</td>
+                    <td class="p-3">${c.name}</td>
+                    <td class="p-3"><span class="status-badge ${statusClass}">${c.status}</span></td>
+                    <td class="p-3 flex items-center space-x-2">
+                        <button onclick="showCustomerActionPlanModal(${c.id})" title="AI ile Aksiyon Planı Oluştur" class="ai-button text-xs font-bold py-1 px-2 rounded-full flex items-center">✨ AI Aksiyon Planı Oluştur</button>
+                        <button onclick="showCustomerDetails(${c.id})" title="Detaylar" class="text-gray-500 hover:text-blue-600"><i class="fas fa-eye"></i></button>
+                        <button title="Düzenle" class="text-gray-500 hover:text-green-600"><i class="fas fa-edit"></i></button>
+                    </td>
+                </tr>`; 
+            }); 
+        }
+        function renderSupportTickets() {
+            const tableBody = document.querySelector('#support-tickets-table tbody');
+            if(!tableBody) return;
+            tableBody.innerHTML = '';
+            supportTickets.forEach(t => {
+                tableBody.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="p-3 font-semibold">${t.subject}</td><td class="p-3"><span class="status-badge status-${t.status}">${t.status}</span></td><td class="p-3">${t.lastUpdate}</td><td class="p-3"><button class="text-blue-600 hover:underline text-sm">Görüntüle</button></td></tr>`;
+            });
+        }
+        function renderKnowledgeBase() {
+            const categoryContainer = document.getElementById('kb-category-tree');
+            const resultsContainer = document.getElementById('kb-results');
+            if (!categoryContainer || !resultsContainer) return;
+
+            const categories = [...new Set(knowledgeBaseArticles.map(a => a.category))];
+            categoryContainer.innerHTML = categories.map(c => `<li><a href="#" class="text-gray-600 hover:text-blue-600">${c}</a></li>`).join('');
+            
+            resultsContainer.innerHTML = `<h3 class="text-lg font-semibold mt-6 mb-2">Son Eklenen Çözümler</h3>`;
+            knowledgeBaseArticles.slice(0, 3).forEach(a => {
+                resultsContainer.innerHTML += `<div class="p-4 border rounded-lg mb-2 hover:bg-gray-50"><h4 class="font-bold">${a.title}</h4><p class="text-sm text-gray-600">${a.content.substring(0, 100)}...</p></div>`;
+            });
+        }
+        function renderReferralsTable() {
+            const tableBody = document.querySelector('#referral-table tbody');
+            if(!tableBody) return;
+            tableBody.innerHTML = '';
+            referrals.forEach(r => {
+                tableBody.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="p-3 font-semibold">${r.customer}</td><td class="p-3">${r.subject}</td><td class="p-3">${r.referredTo}</td><td class="p-3"><span class="status-badge status-${r.status}">${r.status}</span></td></tr>`;
+            });
+        }
+
+        // --- DESTEK & BİLGİ BANKASI ---
+        function searchKnowledgeBase() {
+            const query = document.getElementById('kb-search-input').value.toLowerCase();
+            if (!query) {
+                document.getElementById('kb-results').innerHTML = '';
+                renderKnowledgeBase(); // Arama boşsa varsayılanı göster
+                return;
+            }
+            
+            const matchingArticles = knowledgeBaseArticles.filter(a => 
+                a.title.toLowerCase().includes(query) || 
+                a.content.toLowerCase().includes(query) ||
+                a.category.toLowerCase().includes(query)
+            );
+
+            // AI Hızlı Yanıt
+            const prompt = `Aşağıdaki bilgi bankası makalelerini kullanarak kullanıcının şu sorusuna bir özet yanıt oluştur: "${query}".\n\nMakaleler:\n${matchingArticles.map(a => `Başlık: ${a.title}\nİçerik: ${a.content}`).join('\n\n')}`;
+            callGeminiAPI(prompt, 'gemini-kb-loader', 'gemini-kb-output');
+
+            // Normal Arama Sonuçları
+            const resultsContainer = document.getElementById('kb-results');
+            resultsContainer.innerHTML = `<h3 class="text-lg font-semibold mt-6 mb-2">İlgili Makaleler</h3>`;
+            if (matchingArticles.length > 0) {
+                matchingArticles.forEach(a => {
+                    resultsContainer.innerHTML += `<div class="p-4 border rounded-lg mb-2 hover:bg-gray-50"><h4 class="font-bold">${a.title}</h4><p class="text-sm text-gray-600">${a.content.substring(0, 100)}...</p></div>`;
+                });
+            } else {
+                resultsContainer.innerHTML += `<p>Aramanızla eşleşen makale bulunamadı.</p>`;
+            }
+        }
+
+        // --- GRAFİK OLUŞTURMA ---
+        let salesChart, leadChart, tierChart, trainingChart;
+        function renderPartnerCharts() { if (salesChart) salesChart.destroy(); const salesCtx = document.getElementById('salesTrendChart').getContext('2d'); if(salesCtx) salesChart = new Chart(salesCtx, { type: 'line', data: { labels: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran'], datasets: [{ label: 'Satış Cirosu (₺)', data: [50000, 75000, 60000, 110000, 95000, 150000], borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }] } }); if (leadChart) leadChart.destroy(); const leadCtx = document.getElementById('leadStatusChart').getContext('2d'); if(leadCtx) leadChart = new Chart(leadCtx, { type: 'doughnut', data: { labels: ['Yeni', 'İletişim Kuruldu', 'Kazanıldı', 'Kaybedildi'], datasets: [{ data: [5, 12, 42, 8], backgroundColor: ['#3b82f6', '#f97316', '#10b981', '#ef4444'] }] } }); }
+        function renderAdminCharts() { 
+            if (tierChart) tierChart.destroy(); 
+            const tierCtx = document.getElementById('partnerTierChart').getContext('2d'); 
+            if(tierCtx) tierChart = new Chart(tierCtx, { type: 'bar', data: { labels: ['Bronz', 'Gümüş', 'Altın', 'Platin'], datasets: [{ label: 'Partner Sayısı', data: [75, 45, 30, 2], backgroundColor: ['#cd7f32', '#c0c0c0', '#ffd700', '#e5e4e2'] }] }, options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } } }); 
+            
+            if (trainingChart) trainingChart.destroy();
+            const trainingCtx = document.getElementById('trainingCompletionChart').getContext('2d');
+            if (trainingCtx) {
+                const labels = trainings.map(t => t.title);
+                const data = trainings.map(t => {
+                    const completers = trainingCompletions.filter(c => c.trainingId === t.id && c.status === 'Tamamlandı').length;
+                    return (completers / partners.length) * 100;
+                });
+                trainingChart = new Chart(trainingCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Tamamlama Oranı (%)',
+                            data: data,
+                            backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        scales: { x: { beginAtZero: true, max: 100 } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+        }
+        
+        // --- GEMINI API FUNCTIONS ---
+        async function callGeminiAPI(prompt, loaderId, outputId, targetElementId) {
+            const loader = document.getElementById(loaderId);
+            const outputContainer = document.getElementById(outputId);
+            
+            if(loader) loader.style.display = 'block';
+            if(outputContainer) outputContainer.style.display = 'none';
+
+            try {
+                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Leave empty for Canvas
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+
+                    if (targetElementId) { // If it's for a textarea
+                        document.getElementById(targetElementId).value = text;
+                    } else { // If it's for a display div
+                        const outputDiv = document.createElement('div');
+                        outputDiv.className = 'gemini-output';
+                        outputDiv.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+                        
+                        const copyBtn = document.createElement('button');
+                        copyBtn.innerText = 'Kopyala';
+                        copyBtn.className = 'copy-button';
+                        copyBtn.onclick = () => {
+                            const textArea = document.createElement('textarea');
+                            textArea.value = text;
+                            document.body.appendChild(textArea);
+                            textArea.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(textArea);
+                            copyBtn.innerText = 'Kopyalandı!';
+                            setTimeout(() => { copyBtn.innerText = 'Kopyala'; }, 2000);
+                        };
+
+                        outputContainer.innerHTML = '';
+                        outputContainer.appendChild(outputDiv);
+                        outputDiv.appendChild(copyBtn);
+                        outputContainer.style.display = 'block';
+                    }
+                } else {
+                    throw new Error("Invalid response structure from API.");
+                }
+
+            } catch (error) {
+                console.error("Gemini API error:", error);
+                if (targetElementId) {
+                     document.getElementById(targetElementId).placeholder = "İçerik oluşturulurken bir hata oluştu.";
+                } else {
+                    outputContainer.innerHTML = `<div class="gemini-output text-red-500">İçerik oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.</div>`;
+                    if(outputContainer) outputContainer.style.display = 'block';
+                }
+            } finally {
+                if(loader) loader.style.display = 'none';
+            }
+        }
+
+        function generateCustomerActionPlan(customerId) {
+            const customer = customers.find(c => c.id === customerId);
+            if (!customer) return;
+
+            const prompt = `Bir B2B teknoloji partneri olarak, adı "${customer.name}" olan ve durumu "${customer.status}" olan bir müşteriye yönelik bir aksiyon planı oluştur. Müşteri hakkındaki notlar: "${customer.notes}". Plan şunları içermeli: 1. Kısa ve etkili bir tanışma veya takip e-postası metni. 2. Görüşme sonrası sonraki adımlar için 3 maddelik bir liste. 3. Müşterinin notlarına göre önerilebilecek TechAlliance ürünleri (CoreERP 360, ConnectCRM).`;
+            
+            callGeminiAPI(prompt, 'gemini-customer-loader', 'gemini-customer-output');
+        }
+        
+        function generateTrainingDescription() {
+            const title = document.getElementById('training-title').value;
+            if (!title) {
+                alert('Lütfen önce bir eğitim başlığı girin.');
+                return;
+            }
+            
+            const prompt = `"${title}" başlıklı bir B2B teknoloji partner eğitim modülü için ilgi çekici ve profesyonel bir açıklama metni yaz. Bu açıklama, eğitimin hedeflerini, kapsayacağı ana konuları ve partnerlere sağlayacağı somut faydaları vurgulamalıdır.`;
+
+            callGeminiAPI(prompt, 'gemini-training-loader', null, 'training-desc');
+        }
+
+
+        // --- BAŞLANGIÇ ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProductDocs();
+            renderPartnerManagementTable();
+            renderCustomerTable();
+            renderTrainingList();
+            renderMyProductsTables();
+            renderAdminTrainingManagement();
+            renderMarketingAssets();
+            renderSalesAids();
+            renderSupportTickets();
+            renderKnowledgeBase();
+            renderSalesMarketingFilters();
+            renderTrainingFilters();
+            renderReferralsTable();
+            
+            document.querySelectorAll('nav a.sidebar-link').forEach(link => {
+                link.addEventListener('click', (event) => {
+                    handleNavClick(event, link.getAttribute('href').substring(1));
+                });
+            });
+
+            // Başlangıç görünümünü Partner olarak ayarla
+            adminSections.forEach(s => s.style.display = 'none');
+            partnerSections.forEach(s => s.style.display = 'block');
+            renderPartnerCharts();
+            updateActiveLinkOnScroll();
+        });
+    </script>
+</body>
+</html>
